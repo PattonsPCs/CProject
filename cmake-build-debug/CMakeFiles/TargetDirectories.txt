@@ -1,0 +1,3 @@
+/home/patton64/CLionProjects/CProject/cmake-build-debug/CMakeFiles/CProject.dir
+/home/patton64/CLionProjects/CProject/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/patton64/CLionProjects/CProject/cmake-build-debug/CMakeFiles/rebuild_cache.dir
