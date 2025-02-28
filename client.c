@@ -20,7 +20,7 @@ int main(void){
   serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
   if (connect(socket_fd, (struct sockaddr*)&serverAddress,  sizeof(serverAddress)) == -1) {
-    perror("Connection failed.");
+    perror("Connection failed");
     close(socket_fd);
     exit(EXIT_FAILURE);
   }
