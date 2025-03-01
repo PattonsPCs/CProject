@@ -12,6 +12,7 @@ int main(void) {
     int clientID = 0;
     bool loopFlag = true;
     char buffer[1024];
+    char response[1024];
 
     serverSocket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket_fd == -1) {
@@ -20,7 +21,7 @@ int main(void) {
     }
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port = htons(12345);
+    serverAddress.sin_port = htons(12346);
 
     if (bind(serverSocket_fd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
         perror("Bind failed");
@@ -46,29 +47,30 @@ int main(void) {
         clientID++;
         printf("Client %d connected!\n", clientID);
 
-        memset(buffer, 0, sizeof(buffer));
-        ssize_t bytesReceived = recv(clientSocket_fd, buffer, sizeof(buffer), 0);
-        if (bytesReceived < 0) {
-            perror("Receive Failed");
-            close(clientSocket_fd);
-            continue;
-        }
-        buffer[bytesReceived] = '\0';
+        while (true) {
+            memset(buffer, 0, sizeof(buffer));
+            ssize_t bytesReceived = recv(clientSocket_fd, buffer, sizeof(buffer) - 1, 0);
+            if (bytesReceived < 0) {
+                perror("Receive failed");
+                close(clientSocket_fd);
+                break;
+            }
+            buffer[bytesReceived] = '\0';
 
-        if (strcmp(buffer, "/quit") == 0) {
-            printf("Client requested to close the connection...\n");
-            close(clientSocket_fd);
-            break;
-        } else if (bytesReceived == 0) {
-            printf("Buddy did NOT type anything...\n");
-        } else {
-            printf("Received message: %s\n", buffer);
+            if (strcmp(buffer, "/quit") == 0) {
+                printf("Client requested to close the connection...\n");
+                close(clientSocket_fd);
+                break;
+            } else if (bytesReceived == 0) {
+                printf("Buddy did NOT type anything...\n");
+            } else {
+                printf("Received message: %s\n", buffer);
+                snprintf(response, sizeof(response), "Message Received!");
+                send(clientSocket_fd, response, strlen(response), 0);
+            }
         }
-        strcpy(buffer, "Message Received!");
     }
 
-    close(clientSocket_fd);
     close(serverSocket_fd);
-
     return 0;
 }
