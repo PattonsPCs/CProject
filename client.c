@@ -18,7 +18,7 @@ int main(void) {
     }
 
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(12346); // Ensure this matches the server port
+    serverAddress.sin_port = htons(12345); // Ensure this matches the server port
     serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     if (connect(socket_fd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
@@ -36,30 +36,30 @@ int main(void) {
         }
         buffer[strcspn(buffer, "\n")] = '\0'; // Remove the newline character
 
-        if (strcmp(buffer, "") == 0) {
-            printf("Come on, you gotta send something bro...\n");
-        } else if (strcmp(buffer, "/quit") == 0) {
+        if (strcmp(buffer, "/quit") == 0) {
             printf("Closing connection...\n");
             loopFlag = false;
-        } else {
-            send(socket_fd, buffer, strlen(buffer), 0);
-            printf("Message Sent: %s\n", buffer);
         }
 
-        memset(buffer, 0, sizeof(buffer));
-        ssize_t totalBytesReceived = 0;
-        while (totalBytesReceived < sizeof(buffer) - 1) {
-            ssize_t bytesSize = recv(socket_fd, buffer + totalBytesReceived, sizeof(buffer) - 1 - totalBytesReceived, 0);
-            if (bytesSize < 0) {
-                perror("Receive failed");
+        ssize_t totalSent = 0;
+        ssize_t length = strlen(buffer);
+        while (totalSent < length) {
+            ssize_t bytesSent = send(socket_fd, buffer + totalSent, length - totalSent, 0);
+            if (bytesSent < 0) {
+                perror("Send failed");
                 break;
             }
-            if (bytesSize == 0) {
-                break;
-            }
-            totalBytesReceived += bytesSize;
+            totalSent += bytesSent;
         }
-        buffer[totalBytesReceived] = '\0'; // Null-terminate the received data
+        memset(buffer, 0, sizeof(buffer));
+        ssize_t bytesReceived = recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
+        if (bytesReceived < 0) {
+            perror("Receive failed");
+        } else if (bytesReceived == 0) {
+            printf("Server disconnected.\n");
+            break;
+        }
+        buffer[bytesReceived] = '\0';
         printf("Server response: %s\n", buffer);
     }
 
